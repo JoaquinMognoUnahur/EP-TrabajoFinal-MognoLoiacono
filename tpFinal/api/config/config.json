@@ -1,0 +1,10 @@
+{
+  "development": {
+    "username": "root",
+    "password": "",
+    "database": "tpFinal",
+    "host": "localhost",
+    "dialect": "mariadb",
+    "operatorsAliases": false
+  }
+}
