@@ -2,14 +2,15 @@ var express = require("express");
 var router = express.Router();
 var models = require("../models");
 
-router.get("/", (req, res) => {
-  console.log("Esto es un mensaje para ver en consola");
-  models.materia
-    .findAll({
-      attributes: ["id", "nombre"]
-    })
-    .then(materias => res.send(materias))
-    .catch(() => res.sendStatus(500));
+router.get("/", (req, res,next) => {
+
+  models.materia.findAll({attributes: ["id","nombre","id_carrera"],
+      
+      /////////se agrega la asociacion 
+      include:[{as:'Carrera-Materia', model:models.carrera, attributes: ["id","nombre"]}]
+      ////////////////////////////////
+
+    }).then(materias => res.send(materias)).catch(error => { return next(error)});
 });
 
 router.post("/", (req, res) => {
