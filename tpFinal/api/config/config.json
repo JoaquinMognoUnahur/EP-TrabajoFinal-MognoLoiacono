@@ -6,5 +6,5 @@
     "host": "localhost",
     "dialect": "mariadb",
     "operatorsAliases": false
+    }
   }
-}
