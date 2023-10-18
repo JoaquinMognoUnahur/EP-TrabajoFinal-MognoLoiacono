@@ -3,13 +3,34 @@ var router = express.Router();
 var models = require("../models");
 
 router.get("/", (req, res) => {
+
+  let pagina = parseInt(req.query.pagina);
+  let cantPorPag = parseInt(req.query.cantPorPag);
+
+  pagina = isNaN(pagina) || pagina <= 0? 1 : pagina;
+  cantPorPag = isNaN(cantPorPag) || cantPorPag <= 0? 5 : cantPorPag;
+
+
   console.log("Esto es un mensaje para ver en consola");
   models.docente
-    .findAll({
-      attributes: ["id", "nombre", "apellido", "dni", "estado"]
-    })
-    .then(docentes => res.send(docentes))
-    .catch(() => res.sendStatus(500));
+    .findAndCountAll({
+      attributes: ["id", "nombre", "apellido", "dni", "estado"],
+      
+      limit: cantPorPag,
+      offset: (pagina-1) * (cantPorPag)
+    
+}).then(resp => {
+  const totalElementos = resp.count;
+  const docentes = resp.rows;
+  const totalPaginas = Math.ceil(totalElementos/cantPorPag);
+
+  res.send({
+    totalElementos,
+    totalPaginas,
+    paginaNro: pagina,
+    docentes
+  })
+}).catch(() => res.sendStatus(500));
 });
 
 router.post("/", (req, res) => {

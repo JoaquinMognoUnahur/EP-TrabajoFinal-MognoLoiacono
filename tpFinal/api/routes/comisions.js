@@ -4,7 +4,13 @@ var models = require("../models");
 
 router.get("/", (req, res,next) => {
 
-  models.comision.findAll({
+  let pagina = parseInt(req.query.pagina);
+  let cantPorPag = parseInt(req.query.cantPorPag);
+
+  pagina = isNaN(pagina) || pagina <= 0 ? 1 : pagina;
+  cantPorPag = isNaN(cantPorPag) || cantPorPag <= 0 ? 5 : cantPorPag;
+
+  models.comision.findAndCountAll({
     attributes: ["id", "nombre_comision", "id_materia", "id_periodo", "anio_academico", "estado"],
     include: [
       {
@@ -17,9 +23,23 @@ router.get("/", (req, res,next) => {
         as: 'Comision-Periodo_lectivo',
         attributes: ["id", "nombre"]
       }
-    ]
-    }).then(comisions => res.send(comisions)).catch(error => { return next(error)});
-});
+    ],
+    limit: cantPorPag,
+    offset: (pagina-1) * (cantPorPag)
+
+    }).then(resp => {
+      const totalElementos = resp.count;
+      const comisions = resp.rows;
+      const totalPaginas = Math.ceil(totalElementos/cantPorPag);
+    
+      res.send({
+        totalElementos,
+        totalPaginas,
+        paginaNro: pagina,
+        comisions
+      })
+    }).catch(() => res.sendStatus(500));
+    });
 
 router.post("/", (req, res) => {
   models.comision

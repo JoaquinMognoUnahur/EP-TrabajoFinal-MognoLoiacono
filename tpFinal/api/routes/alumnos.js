@@ -4,14 +4,34 @@ var models = require("../models");
 
 router.get("/", (req, res) => {
 
-  models.alumno.findAll({attributes: ["id","nombre","apellido","dni","sexo","fecha_nacimiento","nacionalidad","email","id_carrera"],
-      /////////se agrega la asociacion 
-      include:[{as:'Carrera-Alumno', model:models.carrera, attributes: ["id","nombre"]}]
-      ////////////////////////////////
-    
+  let pagina = parseInt(req.query.pagina);
+  let cantPorPag = parseInt(req.query.cantPorPag);
 
-}).then(alumnos => res.send(alumnos)).catch(() => res.sendStatus(500));
+  pagina = isNaN(pagina) || pagina <= 0? 1 : pagina;
+  cantPorPag = isNaN(cantPorPag) || cantPorPag <= 0? 5 : cantPorPag;
+
+  models.alumno.findAndCountAll({attributes: ["id","nombre","apellido","dni","sexo","fecha_nacimiento","nacionalidad","email","id_carrera"],
+      /////////se agrega la asociacion 
+      include:[{as:'Carrera-Alumno', model:models.carrera, attributes: ["id","nombre"]}],
+      ////////////////////////////////
+
+      limit: cantPorPag,
+      offset: (pagina-1) * (cantPorPag)
+    
+}).then(resp => {
+  const totalElementos = resp.count;
+  const alumnos = resp.rows;
+  const totalPaginas = Math.ceil(totalElementos/cantPorPag);
+
+  res.send({
+    totalElementos,
+    totalPaginas,
+    paginaNro: pagina,
+    alumnos
+  })
+}).catch(() => res.sendStatus(500));
 });
+
 
 router.post("/", (req, res) => {
   models.alumno

@@ -4,13 +4,33 @@ var models = require("../models");
 
 router.get("/", (req, res,next) => {
 
-  models.materia.findAll({attributes: ["id","nombre","id_carrera"],
+  let pagina = parseInt(req.query.pagina);
+  let cantPorPag = parseInt(req.query.cantPorPag);
+
+  pagina = isNaN(pagina) || pagina <= 0? 1 : pagina;
+  cantPorPag = isNaN(cantPorPag) || cantPorPag <= 0? 5 : cantPorPag;
+
+  models.materia.findAndCountAll({attributes: ["id","nombre","id_carrera"],
       
       /////////se agrega la asociacion 
-      include:[{as:'Carrera-Materia', model:models.carrera, attributes: ["id","nombre"]}]
+      include:[{as:'Carrera-Materia', model:models.carrera, attributes: ["id","nombre"]}],
       ////////////////////////////////
 
-    }).then(materias => res.send(materias)).catch(error => { return next(error)});
+      limit: cantPorPag,
+      offset: (pagina-1) * (cantPorPag)
+    
+}).then(resp => {
+  const totalElementos = resp.count;
+  const materias = resp.rows;
+  const totalPaginas = Math.ceil(totalElementos/cantPorPag);
+
+  res.send({
+    totalElementos,
+    totalPaginas,
+    paginaNro: pagina,
+    materias
+  })
+}).catch(() => res.sendStatus(500));
 });
 
 router.post("/", (req, res) => {
