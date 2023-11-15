@@ -12,6 +12,16 @@ var periodo_lectivosRouter = require('./routes/periodo_lectivos');
 //var routes = require('./routes');
 const jwt = require('jsonwebtoken'); //dependencia de  jwt 
 const keys = require('./config/keys'); //llama al archivo keys que contiene la contraseña del usuario admin
+
+var app = express();
+
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
+
+
 // Swagger
 const swaggerUI = require("swagger-ui-express");
 const swaggerJSDoc = require('swagger-jsdoc');
@@ -31,7 +41,6 @@ const swaggerSpec = {
   apis: ['./routes/*.js'],
 };
 
-var app = express();
 
 
 //implementar el inicio de sesion para que te devuelva el token
@@ -91,16 +100,10 @@ app.get('/info', verificacion, (req, res)=>{
 
 
 app.set('key', keys.key); //setea el archivo keys
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
-
-app.use(logger('dev'));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
 
 //permite usar los metodos de cada una de las rutas que tenemos creadas
 app.use('/alum', alumnosRouter);
