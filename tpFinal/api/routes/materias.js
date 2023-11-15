@@ -2,6 +2,40 @@ var express = require("express");
 var router = express.Router();
 var models = require("../models");
 
+/**
+ * @swagger
+ * components:
+ *  schemas:
+ *    Materia:
+ *      type: object
+ *      properties:
+ *        nombre:
+ *          type: string
+ *          description: Nombre de la materia
+ *        id_carrera:
+ *          type: integer
+ *          description: id de la carrera
+ *      example:
+ *        nombre: Estrategias de persistencia
+ *        id_carrera: 1
+ */
+
+/**
+ * @swagger
+ * /mat:
+ *  get:
+ *    summary: Devuelve todas las materias
+ *    tags: [Materia]
+ *    responses:
+ *      200:
+ *        description: Todas las materias
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                $ref: '#/components/schemas/Materia'       
+ */
 router.get("/", (req, res,next) => {
 
   let pagina = parseInt(req.query.pagina);
@@ -33,6 +67,24 @@ router.get("/", (req, res,next) => {
 }).catch(() => res.sendStatus(500));
 });
 
+/**
+ * @swagger
+ * /mat:
+ *  post:
+ *    summary: Crea una nueva materia
+ *    tags: [Materia]
+ *    requestBody: 
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            $ref: '#/components/schemas/Materia'
+ *    responses:
+ *      200:
+ *        description: nueva materia creada! 
+ */
+
 router.post("/", (req, res) => {
   models.materia
     .create({ nombre: req.body.nombre })
@@ -52,11 +104,38 @@ const findMateria = (id, { onSuccess, onNotFound, onError }) => {
   models.materia
     .findOne({
       attributes: ["id", "nombre"],
+      include:[{as:'Carrera-Materia', model:models.carrera, attributes: ["id","nombre"]}],
       where: { id }
     })
     .then(materia => (materia ? onSuccess(materia) : onNotFound()))
     .catch(() => onError());
 };
+
+/**
+ * @swagger
+ * /mat/{id}:
+ *  get:
+ *    summary: Retorna una materia
+ *    tags: [Materia]
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: El id de la materia
+ *    responses:
+ *      200:
+ *        description: una materia
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                $ref: '#/components/schemas/Materia'
+ *      404:
+ *        description:  la materia no existe    
+ */
 
 router.get("/:id", (req, res) => {
   findMateria(req.params.id, {
@@ -65,6 +144,33 @@ router.get("/:id", (req, res) => {
     onError: () => res.sendStatus(500)
   });
 });
+
+/**
+ * @swagger
+ * /mat/{id}:
+ *  put:
+ *    summary: Actualiza una materia
+ *    tags: [Materia]
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: El id de la materia
+ *    requestBody: 
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            $ref: '#/components/schemas/Materia'
+ *    responses:
+ *      200:
+ *        description: Materia actualizada
+ *      404:
+ *        description: La Materia no existe    
+ */
 
 router.put("/:id", (req, res) => {
   const onSuccess = materia =>
@@ -86,6 +192,26 @@ router.put("/:id", (req, res) => {
     onError: () => res.sendStatus(500)
   });
 });
+
+/**
+ * @swagger
+ * /mat/{id}:
+ *  delete:
+ *    summary: Elimina una Materia
+ *    tags: [Materia]
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: El id de la Materia
+ *    responses:
+ *      200:
+ *        description: Materia eliminada
+ *      404:
+ *        description: La Materia no existe      
+ */
 
 router.delete("/:id", (req, res) => {
   const onSuccess = materia =>

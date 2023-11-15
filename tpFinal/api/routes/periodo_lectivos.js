@@ -2,6 +2,49 @@ var express = require("express");
 var router = express.Router();
 var models = require("../models");
 
+/**
+ * @swagger
+ * components:
+ *  schemas:
+ *    Periodo_lectivo:
+ *     type: object
+ *     properties:
+ *       nombre:
+ *         type: string
+ *         description: el nombre del periodo lectivo
+ *       anio_academico:
+ *         type: numeric
+ *         description: el anio academico del periodo lectivo
+ *       fecha_inicio:
+ *         type: date
+ *         description: fecha de comienzo del periodo lectivo
+ *       fecha_fin:
+ *         type: date
+ *         description: fecha de finalizacion del periodo lectivo
+ *     example:
+ *      nombre: SEGUNDO CUATRIMESTRE 2023
+ *      anio_academico: 2023
+ *      fecha_inicio: 2023-08-07 03:00:00
+ *      fecha_fin: 2023-11-25 03:00:00    
+ * 
+*/
+
+/**
+ * @swagger
+ * /per:
+ *  get:
+ *    summary: Devuelve todos los Periodos_lectivos
+ *    tags: [Periodo_lectivo]
+ *    responses:
+ *      200:
+ *        description: Todos los Periodos_lectivos
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                $ref: '#/components/schemas/Periodo_lectivo'       
+ */
 router.get("/", (req, res) => {
 
   let pagina = parseInt(req.query.pagina);
@@ -34,6 +77,23 @@ router.get("/", (req, res) => {
     .catch(() => res.sendStatus(500));
 });
 
+/**
+ * @swagger
+ * /per:
+ *  post:
+ *    summary: Crea un nuevo Periodo_lectivo
+ *    tags: [Periodo_lectivo]
+ *    requestBody: 
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            $ref: '#/components/schemas/Periodo_lectivo'
+ *    responses:
+ *      200:
+ *        description: nuevo Periodo_lectivo creado! 
+ */
 router.post("/", (req, res) => {
   models.periodo_lectivo
     .create({ id: req.body.id,nombre: req.body.nombre,anio_academico: req.body.anio_academico,fecha_inicio: req.body.fecha_inicio,fecha_fin: req.body.fecha_fin })
@@ -59,6 +119,31 @@ const findPeriodo_lectivo = (id, { onSuccess, onNotFound, onError }) => {
     .catch(() => onError());
 };
 
+/**
+ * @swagger
+ * /per/{id}:
+ *  get:
+ *    summary: Retorna un Periodo_lectivo
+ *    tags: [Periodo_lectivo]
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: El id del Periodo_lectivo
+ *    responses:
+ *      200:
+ *        description: un Periodo_lectivo
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                $ref: '#/components/schemas/Periodo_lectivo'
+ *      404:
+ *        description: el Periodo_lectivo no existe    
+ */
 router.get("/:id", (req, res) => {
     findPeriodo_lectivo(req.params.id, {
     onSuccess: periodo_lectivo => res.send(periodo_lectivo),
@@ -67,6 +152,32 @@ router.get("/:id", (req, res) => {
   });
 });
 
+/**
+ * @swagger
+ * /per/{id}:
+ *  put:
+ *    summary: actualiza un Periodo_lectivo
+ *    tags: [Periodo_lectivo]
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: El id del Periodo_lectivo
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type : object
+ *            $ref: '#/components/schemas/Periodo_lectivo'
+ *    responses:
+ *      200:
+ *        description: Periodo_lectivo actualizado
+ *      404:
+ *        description:  el Periodo_lectivo no existe    
+ */
 router.put("/:id", (req, res) => {
   const onSuccess = periodo_lectivo =>
   periodo_lectivo
@@ -88,6 +199,25 @@ router.put("/:id", (req, res) => {
   });
 });
 
+/**
+ * @swagger
+ * /per/{id}:
+ *  delete:
+ *    summary: elimina un Periodo_lectivo
+ *    tags: [Periodo_lectivo]
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: El id del Periodo_lectivo
+ *    responses:
+ *      200:
+ *        description: Periodo_lectivo eliminado
+ *      404:
+ *        description:  el Periodo_lectivo no existe    
+ */
 router.delete("/:id", (req, res) => {
   const onSuccess = periodo_lectivo =>
   periodo_lectivo

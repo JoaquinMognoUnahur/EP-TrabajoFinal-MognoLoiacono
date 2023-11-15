@@ -2,6 +2,53 @@ var express = require("express");
 var router = express.Router();
 var models = require("../models");
 
+/**
+ * @swagger
+ * components:
+ *  schemas:
+ *    Comision:
+ *      type: object
+ *      properties:
+ *        nombre_comision:
+ *          type: string
+ *          description: Nombre de la comision
+ *        id_materia:
+ *          type: integer
+ *          description: id de la materia
+ *        id_periodo:
+ *          type: integer
+ *          description: id del periodo lectivo
+ *        anio_academico:
+ *          type: numeric
+ *          description: año academico
+ *        estado:
+ *          type: string(1)
+ *          description: estado de la comision(A/P)
+ *      example:
+ *        nombre_comision: C1 TN
+ *        id_materia: 1
+ *        id_periodo: 6
+ *        anio_academico: 2023
+ *        estado: A */
+
+/**
+ * @swagger
+ * /com:
+ *  get:
+ *    summary: Devuelve todas las comisiones
+ *    tags: [Comision]
+ *    responses:
+ *      200:
+ *        description: Todas las comisiones
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                $ref: '#/components/schemas/Comision'       
+ */
+
+
 router.get("/", (req, res,next) => {
 
   let pagina = parseInt(req.query.pagina);
@@ -41,6 +88,25 @@ router.get("/", (req, res,next) => {
     }).catch(() => res.sendStatus(500));
     });
 
+
+/**
+ * @swagger
+ * /com:
+ *  post:
+ *    summary: Crea una nueva comision
+ *    tags: [Comision]
+ *    requestBody: 
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            $ref: '#/components/schemas/Comision'
+ *    responses:
+ *      200:
+ *        description: nueva Comision creada! 
+ */
+
 router.post("/", (req, res) => {
   models.comision
     .create({ id: req.body.id,nombre_comision: req.body.nombre_comision,id_materia: req.body.id_materia,id_periodo: req.body.id_periodo, anio_academico: req.body.anio_academico,estado: req.body.estado })
@@ -60,11 +126,50 @@ const findComision = (id, { onSuccess, onNotFound, onError }) => {
   models.comision
     .findOne({
       attributes: ["id", "nombre_comision", "id_materia", "id_periodo", "anio_academico", "estado"],
+      include: [
+        {
+          model: models.materia,
+          as: 'Comision-Materia',
+          attributes: ["id", "nombre"]
+        },
+        {
+          model: models.periodo_lectivo,
+          as: 'Comision-Periodo_lectivo',
+          attributes: ["id", "nombre"]
+        }
+      ],
       where: { id }
     })
     .then(comision => (comision ? onSuccess(comision) : onNotFound()))
     .catch(() => onError());
 };
+
+
+/**
+ * @swagger
+ * /com/{id}:
+ *  get:
+ *    summary: Retorna una comision
+ *    tags: [Comision]
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: El id de la comision
+ *    responses:
+ *      200:
+ *        description: una comision
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                $ref: '#/components/schemas/Comision'
+ *      404:
+ *        description:  la comision no existe    
+ */
 
 router.get("/:id", (req, res) => {
   findComision(req.params.id, {
@@ -73,6 +178,34 @@ router.get("/:id", (req, res) => {
     onError: () => res.sendStatus(500)
   });
 });
+
+
+/**
+ * @swagger
+ * /com/{id}:
+ *  put:
+ *    summary: Actualiza una comision
+ *    tags: [Comision]
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: El id de la comision
+ *    requestBody: 
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            $ref: '#/components/schemas/comision'
+ *    responses:
+ *      200:
+ *        description: comision actualizada
+ *      404:
+ *        description: La comision no existe    
+ */
 
 router.put("/:id", (req, res) => {
   const onSuccess = comision =>
@@ -94,6 +227,27 @@ router.put("/:id", (req, res) => {
     onError: () => res.sendStatus(500)
   });
 });
+
+
+/**
+ * @swagger
+ * /com/{id}:
+ *  delete:
+ *    summary: Elimina una comision
+ *    tags: [Comision]
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: El id de la comision
+ *    responses:
+ *      200:
+ *        description: comision eliminada
+ *      404:
+ *        description: La comision no existe      
+ */
 
 router.delete("/:id", (req, res) => {
   const onSuccess = comision =>

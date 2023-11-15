@@ -1,5 +1,5 @@
 var createError = require('http-errors');
-//var express = require('express');
+var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
@@ -9,20 +9,32 @@ var comisionesRouter = require('./routes/comisions');
 var docentesRouter = require('./routes/docentes');
 var materiasRouter = require('./routes/materias');
 var periodo_lectivosRouter = require('./routes/periodo_lectivos');
-//var app = express();
+//var routes = require('./routes');
+const jwt = require('jsonwebtoken'); //dependencia de  jwt 
+const keys = require('./config/keys'); //llama al archivo keys que contiene la contraseña del usuario admin
+// Swagger
+const swaggerUI = require("swagger-ui-express");
+const swaggerJSDoc = require('swagger-jsdoc');
+const swaggerSpec = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "EP-TrabajoFinal-MognoLoiacono",
+      version: "1.0.0",
+    },
+    servers: [
+      {
+        url: "http://localhost:3001"
+      }
+    ],
+  },
+  apis: ['./routes/*.js'],
+};
 
-//var jwt = require('jsonwebtoken');
-//var keys = require('./config/keys')
-const express = require('express');
-const app = express();
-const jwt = require('jsonwebtoken');
-const keys = require('./config/keys');
-app.set('key', keys.key);
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+var app = express();
 
 
-
+//implementar el inicio de sesion para que te devuelva el token
 app.post('/login', (req, res)=>{
   if(req.body.usuario == 'admin'&& req.body.pass == '12345'){
     const payload = {
@@ -44,6 +56,7 @@ app.post('/login', (req, res)=>{
 
 const verificacion = express.Router();
 
+//verifica que el token sea el correcto, en caso de no serlo, te devuelve que no es valido o que no existe el token
 verificacion.use((req, res, next)=>{
   let token = req.headers['x-access-token'] || req.headers['authorization'];
   //console.log(token);
@@ -71,11 +84,15 @@ verificacion.use((req, res, next)=>{
   }
 });
 
+//devolucion exitosa del token
 app.get('/info', verificacion, (req, res)=>{
   res.json('INFORMACION IMPORTANTE ENTREGADA');
 })
 
 
+app.set('key', keys.key); //setea el archivo keys
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -84,12 +101,19 @@ app.use(logger('dev'));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+//permite usar los metodos de cada una de las rutas que tenemos creadas
 app.use('/alum', alumnosRouter);
 app.use('/car', carrerasRouter);
 app.use('/com', comisionesRouter);
 app.use('/doc', docentesRouter);
 app.use('/mat', materiasRouter);
 app.use('/per', periodo_lectivosRouter);
+
+// Swagger
+app.use("/api-doc", swaggerUI.serve, swaggerUI.setup(swaggerJSDoc(swaggerSpec))); //swagger
+
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

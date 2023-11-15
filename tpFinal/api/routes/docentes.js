@@ -1,6 +1,48 @@
 var express = require("express");
 var router = express.Router();
 var models = require("../models");
+/**
+ * @swagger
+ * components:
+ *  schemas:
+ *    Docente:
+ *     type: object
+ *     properties:
+ *       nombre:
+ *         type: string
+ *         description: el nombre del docente
+ *       apellido:
+ *         type: string
+ *         description: el apellido del docente
+ *       dni:
+ *         type: string
+ *         description: el dni del docente
+ *       estado:
+ *         type: string(1)
+ *         description: el estado del docente(A/P)
+ *     example:
+ *       nombre: Diego
+ *       apellido: Maradona  
+ *       dni: 12345678X 
+ *       estado: P
+*/
+
+/**
+ * @swagger
+ * /doc:
+ *  get:
+ *    summary: Retorna todos los docentes
+ *    tags: [Docente]
+ *    responses:
+ *      200:
+ *        description: Todos los docentes
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                $ref: '#/components/schemas/Docente'       
+ */
 
 router.get("/", (req, res) => {
 
@@ -33,6 +75,24 @@ router.get("/", (req, res) => {
 }).catch(() => res.sendStatus(500));
 });
 
+/**
+ * @swagger
+ * /doc:
+ *  post:
+ *    summary: Crea un nuevo Docente
+ *    tags: [Docente]
+ *    requestBody: 
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            $ref: '#/components/schemas/Docente'
+ *    responses:
+ *      200:
+ *        description: nuevo Docente creado! 
+ */
+
 router.post("/", (req, res) => {
   models.docente
     .create({ id: req.body.id,nombre: req.body.nombre,apellido: req.body.apellido,dni: req.body.dni,estado: req.body.estado })
@@ -58,6 +118,32 @@ const findDocente = (id, { onSuccess, onNotFound, onError }) => {
     .catch(() => onError());
 };
 
+/**
+ * @swagger
+ * /doc/{id}:
+ *  get:
+ *    summary: Retorna un docente
+ *    tags: [Docente]
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: El id del docente
+ *    responses:
+ *      200:
+ *        description: un docente
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                $ref: '#/components/schemas/Docente'
+ *      404:
+ *        description:  el docente no existe    
+ */
+
 router.get("/:id", (req, res) => {
     findDocente(req.params.id, {
     onSuccess: docente => res.send(docente),
@@ -65,6 +151,33 @@ router.get("/:id", (req, res) => {
     onError: () => res.sendStatus(500)
   });
 });
+
+/**
+ * @swagger
+ * /doc/{id}:
+ *  put:
+ *    summary: actualiza un docente
+ *    tags: [Docente]
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: El id del docente
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type : object
+ *            $ref: '#/components/schemas/Docente'
+ *    responses:
+ *      200:
+ *        description: docente actualizado
+ *      404:
+ *        description:  el docente no existe    
+ */
 
 router.put("/:id", (req, res) => {
   const onSuccess = docente =>
@@ -86,6 +199,26 @@ router.put("/:id", (req, res) => {
     onError: () => res.sendStatus(500)
   });
 });
+
+/**
+ * @swagger
+ * /doc/{id}:
+ *  delete:
+ *    summary: elimina un docente
+ *    tags: [Docente]
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: El id del docente
+ *    responses:
+ *      200:
+ *        description: docente eliminado
+ *      404:
+ *        description:  el docente no existe    
+ */
 
 router.delete("/:id", (req, res) => {
   const onSuccess = docente =>
